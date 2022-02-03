@@ -7,6 +7,10 @@ markers_translated = list()
 
 
 def open_file(file):
+    '''
+    opens csv file with ; delimiter & filter homozygous parents
+    :return: filtered markers, one element = one marker
+    '''
     with open(file, newline='') as f:
         reader = csv.reader(f, delimiter=';', quoting=csv.QUOTE_NONE)
         headers = next(reader)
@@ -17,17 +21,22 @@ def open_file(file):
     return [marker for marker in markers if marker[1] != marker[2]]
 
 
+def get_iupac_code_for_parents_combination(p1, p2):
+    '''
+    :param p1: parent_1 snp
+    :param p2: parent_2 snp
+    :return: sib undefined snp variant
+    '''
+    iupac_codes = ['R = A or G', 'Y = C or T', 'S = G or C', 'W = A or T', 'K = G or T', 'M = A or C']
+    for element in iupac_codes:
+        if p1 in element and p2 in element:
+            return element[0]
+    return 'Fail in get_iupac... function'
+
+
 def translate_snp(marker_array):
     parent1 = marker_array[1]
     parent2 = marker_array[2]
-
-    def get_iupac_code_for_parents_combination(p1, p2):
-        iupac_codes = ['R = A or G', 'Y = C or T', 'S = G or C', 'W = A or T', 'K = G or T', 'M = A or C']
-        for element in iupac_codes:
-            if p1 in element and p2 in element:
-                return element[0]
-        return 'Fail in get_iupac... function'
-
     parents_combination = get_iupac_code_for_parents_combination(parent1,
                                                                  parent2) if parent1 != 'failed' \
                                                                              or parent2 != 'failed' else 0
@@ -63,12 +72,13 @@ def translate_snp(marker_array):
 
 
 def save_file(output_filename, markers_array):
-    with open(output_filename, 'w') as f:
-        writer = csv.writer(f)
-        for row in markers_array:
-            writer.writerow(row)
+    with open(output_filename, 'w', newline='') as f:
+        writer = csv.writer(f, dialect='excel')
+        writer.writerows(markers_array)
+        # for row in markers_array:
+        #     writer.writerow(row)
 
 
-#markers_filtered = open_file(filename)
-#markers_translated = [translate_snp(marker) for marker in markers_filtered]
-#save_file(output, markers_translated)
+markers_filtered = open_file(filename)
+markers_translated = [translate_snp(marker) for marker in markers_filtered]
+save_file(output, markers_translated)
